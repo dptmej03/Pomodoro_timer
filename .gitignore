@@ -4,8 +4,23 @@ node_modules/
 # 빌드 결과물 (npm run dist로 다시 생김 — 올리지 않음)
 dist/
 
-# 로그·캐시
-npm-debug.log*
+# Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 환경변수 파일
+.env
+.env.*
+!.env.example
+
+# 캐시·기타
+.npm
+.cache
+*.tgz
+
+# OS 파일
 .DS_Store
 Thumbs.db
