@@ -1,0 +1,11 @@
+# 남이 만든 부품 라이브러리 (npm install로 다시 생김 — 올리지 않음)
+node_modules/
+
+# 빌드 결과물 (npm run dist로 다시 생김 — 올리지 않음)
+dist/
+
+# 로그·캐시
+npm-debug.log*
+*.log
+.DS_Store
+Thumbs.db

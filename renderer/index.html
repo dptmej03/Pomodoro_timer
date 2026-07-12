@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>뽀모도로 위젯</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="cream">
+  <div id="app">
+    <!-- 상단바: 브라우저처럼 탭이 바 안에 붙어 있음 -->
+    <header id="topbar">
+      <span id="logo">🍅</span>
+      <button class="tab tab-timer active" data-view="timer">타이머</button>
+      <button class="tab tab-todo" data-view="todo">할 일</button>
+      <button class="tab tab-settings" data-view="settings">설정</button>
+      <button id="btn-minimize" title="최소화">─</button>
+      <button id="btn-close" title="닫기">✕</button>
+    </header>
+
+    <!-- 타이머 뷰 -->
+    <main id="view-timer" class="view active">
+      <div id="dial-wrap">
+        <svg id="dial" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="80" class="dial-face" />
+          <g id="dial-ticks"></g>
+          <path id="dial-sector" d="" />
+          <circle cx="100" cy="100" r="34" class="dial-center" />
+          <text id="dial-time" x="100" y="100">00:00</text>
+        </svg>
+        <button id="btn-center" title="일시정지 / 재개"><span id="center-icon"></span></button>
+      </div>
+      <div id="presets">
+        <button class="preset" data-min="5">5분</button>
+        <button class="preset" data-min="15">15분</button>
+        <button class="preset" data-min="30">30분</button>
+        <button class="preset" data-min="45">45분</button>
+        <button class="preset" data-min="50">50분</button>
+      </div>
+      <div id="timer-controls">
+        <button id="btn-reset" disabled>초기화</button>
+      </div>
+    </main>
+
+    <!-- 할일 뷰 -->
+    <main id="view-todo" class="view">
+      <div id="note">
+        <ul id="todo-list"></ul>
+        <div id="todo-ghost">
+          <span class="circle ghost-circle"></span>
+          <input id="todo-input" type="text" placeholder="할 일 추가..." />
+        </div>
+      </div>
+    </main>
+
+    <!-- 설정 뷰 -->
+    <main id="view-settings" class="view">
+      <section class="setting">
+        <h3>테마</h3>
+        <div id="theme-swatches">
+          <button class="swatch" data-swatch-theme="cream" title="크림"></button>
+          <button class="swatch" data-swatch-theme="white" title="화이트"></button>
+          <button class="swatch" data-swatch-theme="gray" title="그레이"></button>
+          <button class="swatch" data-swatch-theme="blue" title="블루"></button>
+          <button class="swatch" data-swatch-theme="purple" title="퍼플"></button>
+          <button class="swatch" data-swatch-theme="pink" title="핑크"></button>
+          <button class="swatch" data-swatch-theme="dark" title="다크"></button>
+        </div>
+      </section>
+      <section class="setting">
+        <h3>완료한 할 일</h3>
+        <label><input type="radio" name="completedBehavior" value="moveDown" /> 밑으로 이동</label>
+        <label><input type="radio" name="completedBehavior" value="strikeInPlace" /> 제자리에 줄 긋기</label>
+        <label class="toggle">
+          <input type="checkbox" id="autodelete-toggle" />
+          <span class="toggle-track"></span>
+          <span>자동 삭제</span>
+        </label>
+      </section>
+      <section class="setting">
+        <h3>종료음</h3>
+        <label class="toggle">
+          <input type="checkbox" id="sound-toggle" />
+          <span class="toggle-track"></span>
+          <span id="sound-label">켜짐</span>
+        </label>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="settings.js"></script>
+  <script src="timer.js"></script>
+  <script src="todo.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body[data-theme="cream"] {
+  --bg: #FBF6EC; --paper-line: #E6DCC8; --text: #3E3A33;
+  --text-faded: #B8B0A0; --accent: #E5484D; --margin-line: #E8A0A0;
+}
+body[data-theme="white"] {
+  --bg: #FFFFFF; --paper-line: #EAEAEA; --text: #333333;
+  --text-faded: #BBBBBB; --accent: #E5484D; --margin-line: #F0B5B5;
+}
+body[data-theme="dark"] {
+  --bg: #2B2B31; --paper-line: #3C3C45; --text: #EDEDED;
+  --text-faded: #6E6E78; --accent: #FF6B6B; --margin-line: #7A5560;
+}
+body[data-theme="pink"] {
+  --bg: #FFF0F3; --paper-line: #F5D5DD; --text: #4A3A40;
+  --text-faded: #C9A8B2; --accent: #E5698A; --margin-line: #E5698A;
+}
+body[data-theme="gray"] {
+  --bg: #EDEDEF; --paper-line: #D8D8DC; --text: #38383C;
+  --text-faded: #A2A2A8; --accent: #E5484D; --margin-line: #C48A8A;
+}
+body[data-theme="blue"] {
+  --bg: #E3EBF4; --paper-line: #C9D8E8; --text: #2E3D4D;
+  --text-faded: #93A8BD; --accent: #E5484D; --margin-line: #9DB8D4;
+}
+body[data-theme="purple"] {
+  --bg: #E9E4F4; --paper-line: #D5CCEA; --text: #3C3552;
+  --text-faded: #A79BC6; --accent: #E5484D; --margin-line: #B7A8D6;
+}
+
+html, body { width: 280px; height: 380px; background: transparent; overflow: hidden; }
+
+body {
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  color: var(--text);
+}
+
+#app {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+
+body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
+@keyframes flash {
+  from { background: var(--bg); }
+  to   { background: var(--accent); }
+}
+
+/* ── 상단바: 탭이 바 안에 붙은 브라우저 스타일 ── */
+#topbar {
+  height: 36px; flex: 0 0 36px;
+  -webkit-app-region: drag;
+  background: var(--paper-line);
+  display: flex; align-items: flex-end; gap: 4px;
+  padding: 0 6px 0 8px;
+  user-select: none;
+}
+#logo { align-self: center; font-size: 13px; margin-right: 2px; }
+.tab {
+  -webkit-app-region: no-drag;
+  position: relative;
+  width: 64px; height: 27px;
+  border: none; cursor: pointer;
+  border-radius: 9px 9px 0 0;
+  font-size: 11px; font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0.55;
+  filter: saturate(0.6);
+  transition: opacity 0.15s, filter 0.15s;
+}
+.tab-timer    { background: #E9B7B7; }
+.tab-todo     { background: #B7CDE9; }
+.tab-settings { background: #CCC3E6; }
+.tab.active { opacity: 1; filter: none; height: 30px; }
+#btn-minimize, #btn-close {
+  -webkit-app-region: no-drag;
+  align-self: center;
+  width: 24px; height: 20px;
+  border: none; background: transparent; border-radius: 4px;
+  color: var(--text-faded); font-size: 10px; cursor: pointer;
+}
+#btn-minimize { margin-left: auto; }
+#btn-minimize:hover { background: var(--bg); color: var(--text); }
+#btn-close:hover { background: #E5484D; color: #fff; }
+
+/* ── 뷰 공통 ── */
+.view { display: none; flex: 1; min-height: 0; background: transparent; }
+.view.active { display: flex; flex-direction: column; }
+
+/* ── 타이머 ── */
+#view-timer { align-items: center; padding: 8px 16px 8px; }
+#dial-wrap { position: relative; flex: 0 0 auto; }
+#dial { display: block; width: 196px; height: 196px; cursor: pointer; touch-action: none; }
+#dial-wrap.locked #dial { cursor: default; }
+
+/* 중앙 일시정지(⏸)/재개(▶) 버튼 — 실행 중 호버 시 ⏸, 일시정지 중엔 ▶ 상시 표시 */
+#btn-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 62px; height: 62px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--paper-line), 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: none; align-items: center; justify-content: center;
+}
+#dial-wrap.running:hover #btn-center,
+#dial-wrap.paused #btn-center { display: flex; }
+#dial-wrap.running #center-icon {
+  position: relative;
+  width: 20px; height: 22px;
+}
+#dial-wrap.running #center-icon::before,
+#dial-wrap.running #center-icon::after {
+  content: ''; position: absolute; top: 0;
+  width: 7px; height: 22px;
+  border-radius: 3.5px;
+  background: var(--accent);
+}
+#dial-wrap.running #center-icon::before { left: 0; }
+#dial-wrap.running #center-icon::after { right: 0; }
+#dial-wrap.paused #center-icon {
+  width: 0; height: 0; margin-left: 5px;
+  border-left: 18px solid var(--accent);
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+}
+.dial-face { fill: none; stroke: var(--paper-line); stroke-width: 2; }
+#dial-sector { fill: var(--accent); opacity: 0.85; }
+.dial-center { fill: var(--bg); }
+#dial-time {
+  text-anchor: middle; dominant-baseline: central;
+  font-size: 24px; font-weight: 600; fill: var(--text);
+}
+.tick-line { stroke: var(--text-faded); stroke-width: 1.5; }
+.tick-label { font-size: 12px; fill: var(--text-faded); text-anchor: middle; dominant-baseline: central; }
+
+#presets { display: flex; gap: 5px; margin-top: 4px; }
+.preset {
+  border: 1px solid var(--paper-line); background: transparent;
+  color: var(--text); border-radius: 999px;
+  padding: 5px 8px; font-size: 12px; cursor: pointer;
+}
+.preset:hover { border-color: var(--accent); }
+.preset.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#timer-controls { display: flex; gap: 6px; margin-top: 8px; }
+#timer-controls button {
+  border: none; border-radius: 8px; padding: 6px 14px;
+  font-size: 12px; cursor: pointer;
+  background: var(--paper-line); color: var(--text);
+}
+#timer-controls button:disabled { opacity: 0.4; cursor: default; }
+
+/* ── 할일 (노트) ── */
+#view-todo { padding: 0; }
+#note {
+  flex: 1; min-height: 0; overflow-y: auto;
+  background:
+    linear-gradient(to right, transparent 27px, var(--margin-line) 27px, var(--margin-line) 28px, transparent 28px),
+    repeating-linear-gradient(to bottom, transparent 0 27px, var(--paper-line) 27px 28px);
+  padding: 0 10px 0 36px;
+}
+#todo-list { list-style: none; }
+.todo-item, #todo-ghost {
+  height: 28px; display: flex; align-items: center; gap: 8px;
+}
+.circle {
+  flex: 0 0 16px; width: 16px; height: 16px;
+  border: 1.5px solid var(--text-faded); border-radius: 50%;
+  cursor: pointer; position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+.todo-item.done .circle { background: var(--accent); border-color: var(--accent); }
+.todo-item.done .circle::after {
+  content: '✓'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 11px;
+}
+.todo-text {
+  flex: 1; font-size: 13px; line-height: 28px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  position: relative;
+}
+.todo-text::after {
+  content: ''; position: absolute; left: 0; top: 50%;
+  height: 1.5px; width: 0; background: var(--text-faded);
+  transition: width 0.3s ease-out;
+}
+.todo-item.done .todo-text { color: var(--text-faded); }
+.todo-item.done .todo-text::after { width: 100%; }
+.todo-del {
+  flex: 0 0 auto; border: none; background: transparent;
+  color: var(--text-faded); font-size: 12px; cursor: pointer;
+  opacity: 0; padding: 2px 4px;
+}
+.todo-item:hover .todo-del { opacity: 1; }
+
+#todo-ghost { opacity: 0.45; transition: opacity 0.15s; }
+#todo-ghost:focus-within { opacity: 1; }
+.ghost-circle { border-style: dashed; cursor: text; }
+#todo-input {
+  flex: 1; border: none; background: transparent; outline: none;
+  font: inherit; font-size: 13px; color: var(--text);
+}
+#todo-input::placeholder { color: var(--text-faded); }
+
+/* ── 설정 ── */
+#view-settings { padding: 10px 18px; gap: 16px; overflow-y: auto; }
+.setting h3 { font-size: 12px; color: var(--text-faded); margin-bottom: 8px; font-weight: 600; }
+.setting label { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 6px; cursor: pointer; }
+.setting input[type="radio"] { accent-color: var(--accent); }
+
+#theme-swatches { display: flex; gap: 10px; }
+.swatch {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--paper-line); cursor: pointer;
+}
+.swatch[data-swatch-theme="cream"]  { background: #FBF6EC; }
+.swatch[data-swatch-theme="white"]  { background: #FFFFFF; }
+.swatch[data-swatch-theme="gray"]   { background: #A8A8AC; }
+.swatch[data-swatch-theme="blue"]   { background: #A9C3DC; }
+.swatch[data-swatch-theme="purple"] { background: #B7AED6; }
+.swatch[data-swatch-theme="pink"]   { background: #F5C6D2; }
+.swatch[data-swatch-theme="dark"]   { background: #2B2B31; }
+.swatch.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+
+.toggle { position: relative; }
+.toggle input { display: none; }
+.toggle-track {
+  width: 34px; height: 18px; border-radius: 999px;
+  background: var(--paper-line); position: relative;
+  transition: background 0.15s;
+}
+.toggle-track::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: left 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.toggle input:checked + .toggle-track { background: var(--accent); }
+.toggle input:checked + .toggle-track::after { left: 18px; }
+
+/* ── 스크롤바 ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }

@@ -1,0 +1,29 @@
+{
+  "name": "pomodoro-widget",
+  "productName": "PomodoroWidget",
+  "version": "1.0.0",
+  "description": "항상 위에 떠 있는 미니 뽀모도로 타이머 + 할일 노트 위젯",
+  "author": "Esthr",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.esthr.pomodoro-widget",
+    "productName": "PomodoroWidget",
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ]
+  }
+}
