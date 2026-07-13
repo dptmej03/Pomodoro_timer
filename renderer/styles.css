@@ -29,7 +29,8 @@ body[data-theme="purple"] {
   --text-faded: #A79BC6; --accent: #E5484D; --margin-line: #B7A8D6;
 }
 
-html, body { width: 280px; height: 380px; background: transparent; overflow: hidden; }
+/* 창 너비는 main.js가 조절(최소 280px) — 창 크기를 그대로 따라간다 */
+html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
 
 body {
   font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
@@ -44,6 +45,15 @@ body {
   overflow: hidden;
   transition: background 0.3s;
 }
+
+/* 가장자리 리사이즈 핸들 — 투명 창은 OS 리사이즈가 안 돼서 직접 처리 */
+.resize-handle {
+  position: fixed; top: 0; bottom: 0; width: 5px;
+  cursor: ew-resize; z-index: 1000;
+  -webkit-app-region: no-drag;
+}
+#resize-left { left: 0; }
+#resize-right { right: 0; }
 
 body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
 @keyframes flash {
@@ -86,7 +96,7 @@ body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
 }
 #btn-minimize { margin-left: auto; }
 #btn-minimize:hover { background: var(--bg); color: var(--text); }
-#btn-close:hover { background: #E5484D; color: #fff; }
+#btn-close:hover { background: var(--accent); color: #fff; }
 
 /* ── 뷰 공통 ── */
 .view { display: none; flex: 1; min-height: 0; background: transparent; }
@@ -160,6 +170,7 @@ body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
 #view-todo { padding: 0; }
 #note {
   flex: 1; min-height: 0; overflow-y: auto;
+  margin-right: 6px; /* 스크롤바가 리사이즈 핸들(5px)에 가려지지 않게 안쪽으로 */
   background:
     linear-gradient(to right, transparent 27px, var(--margin-line) 27px, var(--margin-line) 28px, transparent 28px),
     repeating-linear-gradient(to bottom, transparent 0 27px, var(--paper-line) 27px 28px);
@@ -185,6 +196,22 @@ body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
   flex: 1; font-size: 13px; line-height: 28px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   position: relative;
+  cursor: text; /* 클릭하면 바로 수정 */
+}
+
+/* 드래그로 순서 변경 */
+.todo-item { cursor: grab; }
+.todo-item.dragging { opacity: 0.35; }
+.todo-item.drop-above { box-shadow: inset 0 2px 0 var(--accent); }
+.todo-item.drop-below { box-shadow: inset 0 -2px 0 var(--accent); }
+
+/* 인라인 수정 input — 원래 텍스트와 같은 자리·같은 모양 */
+.todo-edit {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font: inherit; font-size: 13px; color: var(--text);
+  height: 28px; line-height: 28px;
+  border-bottom: 1px dashed var(--text-faded);
 }
 .todo-text::after {
   content: ''; position: absolute; left: 0; top: 50%;
@@ -210,12 +237,25 @@ body.alarm #app { animation: flash 0.6s ease-in-out infinite alternate; }
 #todo-input::placeholder { color: var(--text-faded); }
 
 /* ── 설정 ── */
-#view-settings { padding: 10px 18px; gap: 16px; overflow-y: auto; }
+#view-settings { padding: 10px 18px; gap: 16px; overflow-y: auto; margin-right: 6px; }
 .setting h3 { font-size: 12px; color: var(--text-faded); margin-bottom: 8px; font-weight: 600; }
 .setting label { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 6px; cursor: pointer; }
 .setting input[type="radio"] { accent-color: var(--accent); }
 
 #theme-swatches { display: flex; gap: 10px; }
+
+/* 타이머 프리셋 편집 (분 단위 숫자 입력 5칸) */
+#preset-inputs { display: flex; gap: 6px; }
+.preset-input {
+  width: 40px; padding: 4px 2px; text-align: center;
+  font: inherit; font-size: 12px; color: var(--text);
+  background: transparent;
+  border: 1px solid var(--paper-line); border-radius: 6px;
+  outline: none;
+}
+.preset-input:focus { border-color: var(--accent); }
+.preset-input::-webkit-inner-spin-button,
+.preset-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .swatch {
   width: 26px; height: 26px; border-radius: 50%;
   border: 2px solid var(--paper-line); cursor: pointer;

@@ -9,7 +9,8 @@ description: 뽀모도로 위젯의 디자인 시스템 — 테마 색상, 노�
 
 ## 크기와 창
 
-- 창 크기 **280×380px** 고정(리사이즈 불가). 미니 사이즈 유지가 최우선 원칙 — 요소를 추가할 때 창을 키우지 말고 레이아웃을 줄일 것.
+- 기본 크기 **280×380px**. 높이는 380px 고정, **너비만 280(최소)~560px에서 조절 가능**. 미니 사이즈 유지가 최우선 원칙 — 요소를 추가할 때 창을 키우지 말고 레이아웃을 줄일 것.
+- **가로 리사이즈**: 투명 frameless 창은 OS 가장자리 리사이즈가 불안정 → 양쪽에 `position: fixed` 5px 투명 핸들(`.resize-handle`, `cursor: ew-resize`, `no-drag`)을 두고 pointer 드래그 → IPC(`resize-start/move/end`) → main의 `setBounds`. 왼쪽 핸들은 오른쪽 가장자리 고정(x 보정). `html, body`는 고정 px가 아니라 `width/height: 100%`.
 - 모서리 둥글게(`border-radius: 12px`) + `transparent: true` 창으로 위젯 느낌을 낸다.
 
 ## 상단바 (브라우저 스타일 탭)
@@ -54,7 +55,7 @@ function sectorPath(cx, cy, r, minutesLeft) {
 ```
 - 부채꼴 `fill: var(--accent)`, `opacity: 0.85`. 갱신은 250ms 간격이면 충분(부드럽게 줄어드는 느낌).
 - 중앙 `MM:SS` 텍스트는 부채꼴 위에 오도록 SVG 마지막에 두고, 흰 배경 원(반지름 ~34)을 깔아 가독성 확보.
-- 프리셋 버튼 5개(5분/15분/30분/45분/50분)는 알약 모양, 선택된 버튼만 `--accent` 배경.
+- 프리셋 버튼 5개는 알약 모양, 선택된 버튼만 `--accent` 배경. 버튼은 HTML에 하드코딩하지 않고 **`Timer.renderPresets()`가 `Settings.data.presets`(기본 5/15/30/45/50분)로 그린다** — 설정에서 값이 바뀌면 다시 호출.
 - **다이얼 드래그로 시간 설정**: 다이얼 위 pointerdown/move 시 중심 기준 각도 → `Math.atan2(dx, -dy)`로 12시 기준 시계방향 각도를 구해 1분 단위 스냅, 드래그 중 부채꼴·시간 실시간 미리보기, pointerup에 타이머 시작(1분 미만이면 초기화). `#dial`에 `touch-action: none` 필수. **타이머 진행/일시정지 중(running)에는 드래그 잠금.**
 - **중앙 일시정지/재개 버튼**: 다이얼을 `#dial-wrap`(position: relative)으로 감싸고 중앙에 62px 원형 버튼 오버레이. 실행 중에는 다이얼 호버 시에만 ⏸ 표시 — 막대 두 개는 각각 7×22px, `border-radius 3.5px`, 사이 간격 6px(::before/::after로 그림, 붙어 보이면 안 됨). 일시정지 중에는 ▶(CSS 삼각형) 상시 표시. 하단 컨트롤은 초기화 버튼 하나만.
 
@@ -78,10 +79,12 @@ body.alarm { animation: flash 0.6s ease-in-out infinite alternate; }
 - 체크박스는 `<input type="checkbox">`를 숨기고 지름 16px 동그라미(`border: 1.5px solid var(--text-faded)`, `border-radius: 50%`)로 커스텀. 체크 시 `--accent` 배경 + 흰 체크 표시(✓).
 - 완료 항목: `text-decoration: line-through; color: var(--text-faded);` — 취소선이 "찌익 긋는" 느낌이 나도록 가능하면 width 트랜지션 적용.
 - **반투명 추가줄**: 목록 맨 아래 항상 존재. 빈 동그라미(점선 테두리, opacity 0.4) + `contenteditable` 또는 투명 input, placeholder "할 일 추가...", `opacity: 0.45`. 포커스되면 opacity 1. Enter로 확정, 빈 값이면 무시. 확정 후에도 포커스를 유지해 연속 입력 가능하게.
+- **드래그 순서 변경**: `li.draggable = true` + HTML5 drag 이벤트. 드래그 중인 항목은 `opacity 0.35`, 삽입 위치는 행 위/아래 `box-shadow: inset 0 ±2px 0 var(--accent)` 선으로 표시. 행 중간점 기준으로 위/아래 판정, 반투명 추가줄에 드롭하면 맨 끝으로. 항목 커서는 `grab`, 텍스트는 `text`.
+- **인라인 수정**: `.todo-text` 클릭 → 같은 자리의 `.todo-edit` input으로 교체(font/13px/28px 행 높이 동일, 배경 투명, `border-bottom: 1px dashed var(--text-faded)`로만 편집 중임을 표시). Enter/blur 저장, Esc 취소, 빈 값이면 원래 텍스트 유지. 편집 중에는 해당 `li`의 `draggable`을 꺼서 글자 선택이 드래그로 먹히지 않게.
 
 ## 설정 페이지
 
-- 섹션 3개: 테마(7개 색 견본 원으로 선택) / 완료 항목 동작(라디오 2개: "밑으로 이동" / "제자리에 줄 긋기" + "자동 삭제" 토글) / 종료음(토글 스위치).
+- 섹션 4개: 테마(7개 색 견본 원으로 선택) / **타이머 프리셋(분)** — 숫자 입력 5칸(`.preset-input` 40px, 스핀 버튼 숨김, 테두리 `--paper-line`→포커스 시 `--accent`), 1~60 범위 밖·비숫자는 원래 값으로 복원 / 완료 항목 동작(라디오 2개: "밑으로 이동" / "제자리에 줄 긋기" + "자동 삭제" 토글) / 종료음(토글 스위치).
 - 세션 수 설정은 **넣지 않는다** (사용자가 명시적으로 제외).
 
 

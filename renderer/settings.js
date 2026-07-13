@@ -1,9 +1,17 @@
-// 설정: 테마 / 완료 항목 동작 / 종료음
+// 설정: 테마 / 타이머 프리셋 / 완료 항목 동작 / 종료음
+const DEFAULT_PRESETS = [5, 15, 30, 45, 50];
+
 const Settings = {
-  data: { theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false },
+  data: { theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false, presets: [...DEFAULT_PRESETS] },
 
   async load() {
     this.data = await window.api.loadData('settings');
+    // 저장 파일이 손상됐어도 프리셋은 항상 유효한 5칸(1~60분)으로 복원
+    const raw = Array.isArray(this.data.presets) ? this.data.presets : [];
+    this.data.presets = DEFAULT_PRESETS.map((def, i) => {
+      const v = Math.round(Number(raw[i]));
+      return Number.isFinite(v) && v >= 1 && v <= 60 ? v : def;
+    });
     this.apply();
     this.syncUI();
   },
@@ -28,6 +36,9 @@ const Settings = {
     toggle.checked = this.data.sound;
     document.getElementById('sound-label').textContent = this.data.sound ? '켜짐' : '꺼짐';
     document.getElementById('autodelete-toggle').checked = this.data.autoDelete;
+    document.querySelectorAll('.preset-input').forEach((input, i) => {
+      input.value = this.data.presets[i];
+    });
   },
 
   init() {
@@ -57,6 +68,19 @@ const Settings = {
     document.getElementById('autodelete-toggle').addEventListener('change', (e) => {
       this.data.autoDelete = e.target.checked;
       this.save();
+    });
+
+    // 타이머 프리셋 편집: 1~60분만 허용, 유효하지 않으면 원래 값으로 복원
+    document.querySelectorAll('.preset-input').forEach((input, i) => {
+      input.addEventListener('change', () => {
+        const v = Math.round(Number(input.value));
+        if (Number.isFinite(v) && v >= 1 && v <= 60) {
+          this.data.presets[i] = v;
+          this.save();
+          Timer.renderPresets();
+        }
+        this.syncUI();
+      });
     });
   },
 };

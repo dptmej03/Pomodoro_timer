@@ -13,13 +13,7 @@ const Timer = {
     this.drawTicks();
     this.updateDisplay(0);
 
-    document.querySelectorAll('.preset').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.start(Number(btn.dataset.min));
-        document.querySelectorAll('.preset').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
+    this.renderPresets();
 
     document.getElementById('btn-reset').addEventListener('click', () => this.reset());
     document.getElementById('btn-center').addEventListener('click', (e) => {
@@ -28,6 +22,23 @@ const Timer = {
     });
 
     this.initDrag();
+  },
+
+  // 프리셋 버튼은 설정(Settings.data.presets)에서 그린다 — 설정에서 값을 바꾸면 다시 호출됨
+  renderPresets() {
+    const wrap = document.getElementById('presets');
+    wrap.innerHTML = '';
+    for (const min of Settings.data.presets) {
+      const btn = document.createElement('button');
+      btn.className = 'preset';
+      btn.textContent = `${min}분`;
+      btn.addEventListener('click', () => {
+        this.start(min);
+        document.querySelectorAll('.preset').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+      wrap.appendChild(btn);
+    }
   },
 
   // 다이얼을 드래그해서 시간 설정 — 놓으면 바로 시작
