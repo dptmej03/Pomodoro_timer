@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -39,10 +39,22 @@ function saveJson(kind, data) {
 
 let win;
 
+const MARGIN = 12; // 화면 가장자리와 위젯 사이 여백(px)
+
 function createWindow() {
+  const width = clampWidth(loadJson('settings').windowWidth);
+
+  // 항상 오른쪽 아래(작업표시줄 위)에 뜨도록: 작업 영역 기준으로 위치 계산.
+  // 화면이 아주 작아도 창이 밖으로 나가지 않게 작업 영역 안으로 clamp.
+  const { workArea } = screen.getPrimaryDisplay();
+  const x = Math.max(workArea.x, workArea.x + workArea.width - width - MARGIN);
+  const y = Math.max(workArea.y, workArea.y + workArea.height - HEIGHT - MARGIN);
+
   win = new BrowserWindow({
-    width: clampWidth(loadJson('settings').windowWidth),
+    width,
     height: HEIGHT,
+    x,
+    y,
     resizable: false,
     frame: false,
     transparent: true,
