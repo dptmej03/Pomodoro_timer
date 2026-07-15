@@ -81,10 +81,13 @@ body.alarm { animation: flash 0.6s ease-in-out infinite alternate; }
 - **반투명 추가줄**: 목록 맨 아래 항상 존재. 빈 동그라미(점선 테두리, opacity 0.4) + `contenteditable` 또는 투명 input, placeholder "할 일 추가...", `opacity: 0.45`. 포커스되면 opacity 1. Enter로 확정, 빈 값이면 무시. 확정 후에도 포커스를 유지해 연속 입력 가능하게.
 - **드래그 순서 변경**: `li.draggable = true` + HTML5 drag 이벤트. 드래그 중인 항목은 `opacity 0.35`, 삽입 위치는 행 위/아래 `box-shadow: inset 0 ±2px 0 var(--accent)` 선으로 표시. 행 중간점 기준으로 위/아래 판정, 반투명 추가줄에 드롭하면 맨 끝으로. 항목 커서는 `grab`, 텍스트는 `text`.
 - **인라인 수정**: `.todo-text` 클릭 → 같은 자리의 `.todo-edit` input으로 교체(font/13px/28px 행 높이 동일, 배경 투명, `border-bottom: 1px dashed var(--text-faded)`로만 편집 중임을 표시). Enter/blur 저장, Esc 취소, 빈 값이면 원래 텍스트 유지. 편집 중에는 해당 `li`의 `draggable`을 꺼서 글자 선택이 드래그로 먹히지 않게.
+- **태그 그룹**(`Settings.data.tagsEnabled`): 목록을 태그별 `.tag-section`으로 나눠 한 화면에 쭉 쌓는다. 섹션 = `.tag-header`(라벨 텍스트 + `::after`로 오른쪽에 `var(--accent)` 구분선을 flex로 쭉 긋기, 색은 accent·opacity 0.5) + `.todo-list` + 그룹 전용 `.todo-ghost`. `#note`가 `<ul>` 하나가 아니라 섹션들을 담으므로 렌더는 todo.js가 `#note`를 통째로 그린다. 태그 OFF면 단일 목록 + 추가줄 하나(예전 구조).
+- **중요도 네모칸**(`Settings.data.priorityEnabled`): 동그라미와 텍스트 사이에 `.prio-box`(12px, `border-radius: 3px`, `margin-right: -2px`로 텍스트에 붙임). 보통=빈 네모(`var(--text-faded)` 테두리), 중간=`.prio-1` 노랑 `#F5B301`, 높음=`.prio-2` `var(--accent)`. 클릭하면 보통→중간→높음 순환. 자동 정렬(`prioritySort`)은 그룹 안에서 높은 중요도 먼저 표시하며, 이때 드래그는 같은 중요도끼리만(`canDropOn`).
+- 설정에서 상위 토글이 꺼졌을 때 하위 토글 행은 `.toggle.disabled`(opacity 0.4 + pointer-events 없음)로 회색 처리. 태그 이름 입력칸은 `disabled` 속성으로 회색.
 
 ## 설정 페이지
 
-- 섹션 4개: 테마(7개 색 견본 원으로 선택) / **타이머 프리셋(분)** — 숫자 입력 5칸(`.preset-input` 40px, 스핀 버튼 숨김, 테두리 `--paper-line`→포커스 시 `--accent`), 1~60 범위 밖·비숫자는 원래 값으로 복원 / 완료 항목 동작(라디오 2개: "밑으로 이동" / "제자리에 줄 긋기" + "자동 삭제" 토글) / 종료음(토글 스위치).
+- 섹션 6개: 테마(7개 색 견본 원으로 선택) / **타이머 프리셋(분)** — 숫자 입력 5칸(`.preset-input` 40px, 스핀 버튼 숨김, 테두리 `--paper-line`→포커스 시 `--accent`), 1~60 범위 밖·비숫자는 원래 값으로 복원 / **할 일 태그**(사용 토글 + 이름 입력 3칸 `.tag-name-input`, 토글 꺼지면 `disabled`) / **중요도**(표시 토글 + 자동 정렬 토글, 표시 꺼지면 자동 정렬 행 `.toggle.disabled`) / 완료 항목 동작(라디오 2개: "밑으로 이동" / "제자리에 줄 긋기" + "자동 삭제" 토글) / 종료음(토글 스위치).
 - 세션 수 설정은 **넣지 않는다** (사용자가 명시적으로 제외).
 
 

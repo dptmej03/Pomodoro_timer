@@ -1,8 +1,13 @@
-// 설정: 테마 / 타이머 프리셋 / 완료 항목 동작 / 종료음
+// 설정: 테마 / 타이머 프리셋 / 완료 항목 동작 / 종료음 / 할 일 태그
 const DEFAULT_PRESETS = [5, 15, 30, 45, 50];
+const DEFAULT_TAGS = ['개인', '랩실', '학교'];
 
 const Settings = {
-  data: { theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false, presets: [...DEFAULT_PRESETS] },
+  data: {
+    theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false,
+    presets: [...DEFAULT_PRESETS], tagsEnabled: false, tags: [...DEFAULT_TAGS],
+    priorityEnabled: false, prioritySort: false,
+  },
 
   async load() {
     this.data = await window.api.loadData('settings');
@@ -12,6 +17,16 @@ const Settings = {
       const v = Math.round(Number(raw[i]));
       return Number.isFinite(v) && v >= 1 && v <= 60 ? v : def;
     });
+    // 태그 이름도 항상 유효한 3칸(빈 값이면 기본 이름)으로 복원
+    const rawTags = Array.isArray(this.data.tags) ? this.data.tags : [];
+    this.data.tags = DEFAULT_TAGS.map((def, i) => {
+      const v = typeof rawTags[i] === 'string' ? rawTags[i].trim() : '';
+      return v || def;
+    });
+    // 켜짐/꺼짐 토글은 손상값이 들어와도 항상 진짜 boolean으로
+    this.data.tagsEnabled = this.data.tagsEnabled === true;
+    this.data.priorityEnabled = this.data.priorityEnabled === true;
+    this.data.prioritySort = this.data.prioritySort === true;
     this.apply();
     this.syncUI();
   },
@@ -39,6 +54,22 @@ const Settings = {
     document.querySelectorAll('.preset-input').forEach((input, i) => {
       input.value = this.data.presets[i];
     });
+
+    const tagsToggle = document.getElementById('tags-toggle');
+    tagsToggle.checked = this.data.tagsEnabled;
+    document.getElementById('tags-label').textContent = this.data.tagsEnabled ? '켜짐' : '꺼짐';
+    document.querySelectorAll('.tag-name-input').forEach((input, i) => {
+      input.value = this.data.tags[i];
+      input.disabled = !this.data.tagsEnabled; // 토글 꺼지면 회색 비활성
+    });
+
+    document.getElementById('priority-toggle').checked = this.data.priorityEnabled;
+    document.getElementById('priority-label').textContent = this.data.priorityEnabled ? '켜짐' : '꺼짐';
+    // 자동 정렬 토글은 중요도 표시가 켜졌을 때만 활성
+    const psToggle = document.getElementById('prioritysort-toggle');
+    psToggle.checked = this.data.prioritySort;
+    psToggle.disabled = !this.data.priorityEnabled;
+    document.getElementById('prioritysort-row').classList.toggle('disabled', !this.data.priorityEnabled);
   },
 
   init() {
@@ -81,6 +112,38 @@ const Settings = {
         }
         this.syncUI();
       });
+    });
+
+    // 태그 사용 토글: 꺼지면 이름 입력칸이 회색 비활성 + 할일 페이지 필터 숨김
+    document.getElementById('tags-toggle').addEventListener('change', (e) => {
+      this.data.tagsEnabled = e.target.checked;
+      this.syncUI();
+      this.save();
+      Todos.render();
+    });
+
+    document.querySelectorAll('.tag-name-input').forEach((input, i) => {
+      input.addEventListener('change', () => {
+        const v = input.value.trim();
+        this.data.tags[i] = v || DEFAULT_TAGS[i];
+        this.syncUI();
+        this.save();
+        Todos.render();
+      });
+    });
+
+    // 중요도 표시 토글: 끄면 자동 정렬도 함께 꺼진 것처럼 회색 비활성
+    document.getElementById('priority-toggle').addEventListener('change', (e) => {
+      this.data.priorityEnabled = e.target.checked;
+      this.syncUI();
+      this.save();
+      Todos.render();
+    });
+
+    document.getElementById('prioritysort-toggle').addEventListener('change', (e) => {
+      this.data.prioritySort = e.target.checked;
+      this.save();
+      Todos.render();
     });
   },
 };

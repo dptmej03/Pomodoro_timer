@@ -38,13 +38,10 @@
 
     <!-- 할일 뷰 -->
     <main id="view-todo" class="view">
-      <div id="note">
-        <ul id="todo-list"></ul>
-        <div id="todo-ghost">
-          <span class="circle ghost-circle"></span>
-          <input id="todo-input" type="text" placeholder="할 일 추가..." />
-        </div>
-      </div>
+      <!-- 목록은 todo.js가 통째로 그린다:
+           태그 OFF → 평범한 목록 + 추가줄
+           태그 ON  → 그룹별 섹션(헤더 + 항목 + 그룹별 추가줄) -->
+      <div id="note"></div>
     </main>
 
     <!-- 설정 뷰 -->
@@ -70,6 +67,32 @@
           <input type="number" class="preset-input" min="1" max="60" />
           <input type="number" class="preset-input" min="1" max="60" />
         </div>
+      </section>
+      <section class="setting">
+        <h3>할 일 태그</h3>
+        <label class="toggle">
+          <input type="checkbox" id="tags-toggle" />
+          <span class="toggle-track"></span>
+          <span id="tags-label">꺼짐</span>
+        </label>
+        <div id="tag-name-inputs">
+          <input type="text" class="tag-name-input" maxlength="6" placeholder="태그 1" />
+          <input type="text" class="tag-name-input" maxlength="6" placeholder="태그 2" />
+          <input type="text" class="tag-name-input" maxlength="6" placeholder="태그 3" />
+        </div>
+      </section>
+      <section class="setting">
+        <h3>중요도</h3>
+        <label class="toggle">
+          <input type="checkbox" id="priority-toggle" />
+          <span class="toggle-track"></span>
+          <span id="priority-label">꺼짐</span>
+        </label>
+        <label class="toggle" id="prioritysort-row">
+          <input type="checkbox" id="prioritysort-toggle" />
+          <span class="toggle-track"></span>
+          <span>중요도순 자동 정렬</span>
+        </label>
       </section>
       <section class="setting">
         <h3>완료한 할 일</h3>

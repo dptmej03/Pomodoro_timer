@@ -10,7 +10,12 @@ const FILES = {
 
 const DEFAULTS = {
   todos: { todos: [] },
-  settings: { theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false, windowWidth: 280, presets: [5, 15, 30, 45, 50] },
+  settings: {
+    theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false,
+    windowWidth: 280, presets: [5, 15, 30, 45, 50],
+    tagsEnabled: false, tags: ['개인', '랩실', '학교'],
+    priorityEnabled: false, prioritySort: false,
+  },
 };
 
 // 창 크기: 280px이 기본이자 최소, 가로로만 늘릴 수 있다 (높이 고정)
