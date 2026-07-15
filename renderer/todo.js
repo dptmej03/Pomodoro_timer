@@ -8,7 +8,31 @@ const Todos = {
   async load() {
     const data = await window.api.loadData('todos');
     this.items = Array.isArray(data.todos) ? data.todos : [];
+    this.migrateTags();
     this.render();
+  },
+
+  // 예전에는 항목 tag가 숫자 인덱스(0/1/2)였다. 태그가 id 방식으로 바뀌었으니
+  // Settings가 만들어 둔 인덱스→id 대응표로 한 번 변환해 준다.
+  migrateTags() {
+    const map = Settings.legacyTagMap;
+    if (!map) return;
+    let changed = false;
+    for (const item of this.items) {
+      if (typeof item.tag === 'number') {
+        item.tag = map[item.tag] ?? null;
+        changed = true;
+      }
+    }
+    if (changed) this.save();
+  },
+
+  // 특정 태그(id)에 달린 할일들을 무태그(기타)로 — 태그 삭제 시 호출
+  untag(tagId) {
+    for (const item of this.items) {
+      if (item.tag === tagId) item.tag = null;
+    }
+    this.save();
   },
 
   save() {
@@ -55,17 +79,23 @@ const Todos = {
       return;
     }
 
-    // 태그 ON — 그룹별 섹션. 순서: 태그 0,1,2 → 무태그(태그 없는 항목이 있을 때만)
+    // 태그 ON — 태그(설정 순서)별 섹션 → 무태그(기타) 섹션(그런 항목이 있을 때만)
     note.classList.add('grouped');
-    const tags = Settings.data.tags;
-    tags.forEach((name, i) => note.appendChild(this.makeSection(name, i)));
-    if (this.items.some((t) => t.tag === null || t.tag === undefined)) {
-      note.appendChild(this.makeSection('기타', null));
+    const validIds = new Set(Settings.data.tags.map((t) => t.id));
+    for (const tag of Settings.data.tags) {
+      note.appendChild(this.makeSection(tag.name, tag.id));
     }
+    // 무태그이거나, 삭제된 태그를 아직 달고 있는 항목은 "기타"로 모은다
+    const hasOther = this.items.some((t) => {
+      const id = t.tag ?? null;
+      return id === null || !validIds.has(id);
+    });
+    if (hasOther) note.appendChild(this.makeSection('기타', null));
   },
 
-  // 한 그룹 섹션: 헤더(구분선+이름) + 그 태그 항목들 + 그 태그 전용 추가줄
-  makeSection(name, tag) {
+  // 한 그룹 섹션: 헤더(구분선+이름) + 그 태그 항목들 + 그 태그 전용 추가줄.
+  // tagId가 null이면 무태그(+삭제된 태그를 단 항목)를 모으는 "기타" 섹션.
+  makeSection(name, tagId) {
     const section = document.createElement('div');
     section.className = 'tag-section';
 
@@ -74,15 +104,17 @@ const Todos = {
     header.textContent = name;
     section.appendChild(header);
 
+    const validIds = new Set(Settings.data.tags.map((t) => t.id));
     const ul = document.createElement('ul');
     ul.className = 'todo-list';
-    const inGroup = this.items.filter((t) =>
-      tag === null ? t.tag === null || t.tag === undefined : t.tag === tag
-    );
+    const inGroup = this.items.filter((t) => {
+      const id = t.tag ?? null;
+      return tagId === null ? id === null || !validIds.has(id) : id === tagId;
+    });
     for (const item of this.ordered(inGroup)) ul.appendChild(this.makeItem(item));
     section.appendChild(ul);
 
-    section.appendChild(this.makeGhost(tag));
+    section.appendChild(this.makeGhost(tagId));
     return section;
   },
 

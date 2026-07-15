@@ -13,7 +13,12 @@ const DEFAULTS = {
   settings: {
     theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false,
     windowWidth: 280, presets: [5, 15, 30, 45, 50],
-    tagsEnabled: false, tags: ['개인', '랩실', '학교'],
+    tagsEnabled: false,
+    tags: [
+      { id: 't1', name: '개인' },
+      { id: 't2', name: '랩실' },
+      { id: 't3', name: '학교' },
+    ],
     priorityEnabled: false, prioritySort: false,
   },
 };
