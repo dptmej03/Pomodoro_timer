@@ -12,6 +12,7 @@
       <span id="logo">🍅</span>
       <button class="tab tab-timer active" data-view="timer">타이머</button>
       <button class="tab tab-todo" data-view="todo">할 일</button>
+      <button class="tab tab-memo" data-view="memo">메모</button>
       <button class="tab tab-settings" data-view="settings">설정</button>
       <button id="btn-minimize" title="최소화">─</button>
       <button id="btn-close" title="닫기">✕</button>
@@ -42,6 +43,14 @@
            태그 OFF → 평범한 목록 + 추가줄
            태그 ON  → 그룹별 섹션(헤더 + 항목 + 그룹별 추가줄) -->
       <div id="note"></div>
+    </main>
+
+    <!-- 메모 뷰: 칩 줄(메모 목록 + 추가)은 memo.js가 그리고, 아래는 공책 편집 영역 -->
+    <main id="view-memo" class="view">
+      <div id="memo-chips"></div>
+      <div id="memo-paper">
+        <textarea id="memo-text" placeholder="메모를 입력하세요..." spellcheck="false"></textarea>
+      </div>
     </main>
 
     <!-- 설정 뷰 -->
@@ -120,6 +129,7 @@
   <script src="settings.js"></script>
   <script src="timer.js"></script>
   <script src="todo.js"></script>
+  <script src="memo.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

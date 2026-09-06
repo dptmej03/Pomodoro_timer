@@ -5,11 +5,13 @@ const path = require('path');
 const DATA_DIR = app.getPath('userData');
 const FILES = {
   todos: path.join(DATA_DIR, 'todos.json'),
+  memos: path.join(DATA_DIR, 'memos.json'),
   settings: path.join(DATA_DIR, 'settings.json'),
 };
 
 const DEFAULTS = {
   todos: { todos: [] },
+  memos: { memos: [] },
   settings: {
     theme: 'cream', completedBehavior: 'moveDown', sound: true, autoDelete: false,
     windowWidth: 280, presets: [5, 15, 30, 45, 50],
@@ -86,6 +88,12 @@ ipcMain.handle('save-data', (_e, kind, data) => {
   if (kind === 'settings' && win) data.windowWidth = win.getBounds().width;
   return saveJson(kind, data);
 });
+// 창이 닫히는 중에는 invoke 응답을 기다릴 수 없어 동기 저장 통로를 따로 둔다
+ipcMain.on('save-data-sync', (e, kind, data) => {
+  if (kind === 'settings' && win) data.windowWidth = win.getBounds().width;
+  e.returnValue = saveJson(kind, data);
+});
+
 ipcMain.on('minimize', () => win?.minimize());
 ipcMain.on('close', () => win?.close());
 ipcMain.on('flash-frame', (_e, on) => win?.flashFrame(on));

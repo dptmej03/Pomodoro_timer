@@ -16,9 +16,11 @@ description: 뽀모도로 위젯의 디자인 시스템 — 테마 색상, 노�
 ## 상단바 (브라우저 스타일 탭)
 
 - 높이 36px, 배경 `var(--paper-line)`, 바 전체가 드래그 영역(`-webkit-app-region: drag`), 안의 탭·최소화 버튼은 `no-drag`.
-- 구성: 🍅 로고 → 탭 3개 → (오른쪽 끝) 최소화(─)·닫기(✕) 버튼. 닫기 버튼 호버는 빨간 배경 + 흰 글자.
-- 탭은 브라우저 탭처럼 **바 하단에 붙어** 위쪽만 둥근 모양(64×27px, `border-radius: 9px 9px 0 0`), 활성 탭은 높이 30px로 살짝 크고 원색, 비활성 탭은 `opacity 0.55 + saturate(0.6)`.
-- 탭별 고정 파스텔색(테마 무관): 타이머 `#E9B7B7` / 할 일 `#B7CDE9` / 설정 `#CCC3E6`.
+- 구성: 🍅 로고 → 탭 4개 → (오른쪽 끝) 최소화(─)·닫기(✕) 버튼. 닫기 버튼 호버는 빨간 배경 + 흰 글자.
+- 탭은 브라우저 탭처럼 **바 하단에 붙어** 위쪽만 둥근 모양(**44×27px**, `border-radius: 9px 9px 0 0`), 활성 탭은 높이 30px로 살짝 크고 원색, 비활성 탭은 `opacity 0.55 + saturate(0.6)`.
+  - 폭 44px은 280px 최소 너비에서 역산한 값이다: `280 − padding 10 − 로고 약 18 − gap 3×6 − 창버튼 48 = 176`, 즉 탭당 44px. 바에는 로고·최소화·닫기·gap도 함께 들어가므로 **탭 폭만 계산하면 넘친다.**
+  - `.tab`은 `flex: 0 0 44px`로 **축소를 막는다**(shrink되면 라벨이 잘림). **탭을 더 늘리려면 창을 키우지 말고 이 폭을 더 줄일 것.**
+- 탭별 고정 파스텔색(테마 무관): 타이머 `#E9B7B7` / 할 일 `#B7CDE9` / 메모 `#C9E4C5` / 설정 `#CCC3E6`.
 
 ## 테마 (CSS 변수)
 
@@ -85,6 +87,18 @@ body.alarm { animation: flash 0.6s ease-in-out infinite alternate; }
 - **설정 태그 관리**(`#tag-list`, `Settings.renderTagList()`): 태그마다 `.tag-row`(`[.tag-handle ≡][.tag-name-input][.tag-del ×]`) + 맨 아래 `.tag-add`("+ 태그 추가"). 행을 드래그해 순서 변경(`.dragging`/`.drop-above`/`.drop-below`), 이름칸에서 시작한 드래그는 `pointerdown`에서 `row.draggable=false`로 막아 텍스트 선택이 되게. 삭제하면 그 태그의 할일은 `Todos.untag(id)`로 무태그. 토글 꺼지면 입력/버튼 `disabled` 회색.
 - **중요도 네모칸**(`Settings.data.priorityEnabled`): 동그라미와 텍스트 사이에 `.prio-box`(12px, `border-radius: 3px`, `margin-right: -2px`로 텍스트에 붙임). 보통=빈 네모(`var(--text-faded)` 테두리), 중간=`.prio-1` 노랑 `#F5B301`, 높음=`.prio-2` `var(--accent)`. 클릭하면 보통→중간→높음 순환. 자동 정렬(`prioritySort`)은 그룹 안에서 높은 중요도 먼저 표시하며, 이때 드래그는 같은 중요도끼리만(`canDropOn`).
 - 설정에서 상위 토글이 꺼졌을 때 하위 토글 행은 `.toggle.disabled`(opacity 0.4 + pointer-events 없음)로 회색 처리. 태그 이름 입력칸은 `disabled` 속성으로 회색.
+
+## 메모 페이지 (공책 + 칩 목록)
+
+- 구조: `#memo-chips`(고정 높이 칩 줄) + `#memo-paper`(스크롤 컨테이너) > `#memo-text`(textarea).
+- **칩 줄**: `border-bottom: 1px var(--paper-line)`로 종이와 구분. 칩은 알약형(`border-radius: 999px`, 11px, `max-width: 84px` + ellipsis), 비활성은 `--paper-line` 테두리 + `--text-faded` 글자, 활성은 `--accent` 테두리·글자 + `font-weight: 600`. 활성 칩 **뒤에만** 18px 원형 삭제 ✕(호버 시 `--accent` 배경 + 흰 글자). 줄 오른쪽 끝(`margin-left: auto`)에 20px 원형 점선 `+` 추가 버튼. 칩이 많으면 가로 스크롤(스크롤바는 숨김).
+- **종이**: 할일 `#note`와 같은 27/28px 가로줄 + 28px 마진선, `padding: 0 10px 0 36px`.
+- **가로줄은 반드시 `#memo-text`(textarea)에 그린다.** 스크롤 컨테이너(`#memo-paper`)에 그리면 `background-attachment: scroll` 기본값 때문에 배경이 요소에 고정돼 **콘텐츠만 움직이고 줄무늬는 제자리에 남아 글자가 줄에서 뜬다.** 세로 마진선은 가로 위치가 고정이라 `#memo-paper`에 두어도 안전.
+- **28px 정렬이 핵심**: textarea는 `line-height: 28px`, `padding: 0`, `border: none`, `overflow: hidden`, `resize: none`. 스크롤은 `#memo-paper`가 담당하고, memo.js의 `autoGrow()`가 `height = max(scrollHeight, 화면 높이를 28px 배수로 올림)`으로 늘려 준다.
+- `autoGrow()`는 **뷰가 숨겨져 있으면(`display:none`) `scrollHeight`가 0**이라 높이가 무너진다. `if (!ta.offsetParent) return` 가드를 두고, 메모 탭으로 전환하는 시점에 app.js가 다시 호출한다.
+- 제목은 본문 첫 줄에서 파생(8자 초과 시 `…`, 빈 값은 "새 메모"). 타이핑 중에는 전체 render를 돌리지 말고 **해당 칩의 textContent만** 갱신한다(커서가 튐).
+- 저장은 입력 중 400ms 디바운스 + 메모 전환·탭 이동·blur·`beforeunload`에 `flush()`로 즉시 기록.
+- 메모는 항상 최소 1장 유지 — 마지막 한 장의 ✕는 삭제 대신 내용 비우기.
 
 ## 설정 페이지
 

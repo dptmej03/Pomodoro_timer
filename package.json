@@ -1,8 +1,8 @@
 {
   "name": "pomodoro-widget",
   "productName": "PomodoroWidget",
-  "version": "1.2.0",
-  "description": "항상 위에 떠 있는 미니 뽀모도로 타이머 + 할일 노트 위젯",
+  "version": "1.3.0",
+  "description": "항상 위에 떠 있는 미니 뽀모도로 타이머 + 할일 노트 + 메모 위젯",
   "author": "Esthr",
   "main": "main.js",
   "scripts": {

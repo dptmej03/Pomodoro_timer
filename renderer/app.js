@@ -1,15 +1,24 @@
 // 초기화: 탭 전환, 최소화, 알람 해제
 document.querySelectorAll('.tab').forEach((tab) => {
   tab.addEventListener('click', () => {
+    Memos.flush(); // 메모를 쓰다 다른 탭으로 넘어가도 내용이 남도록
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
     document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(`view-${tab.dataset.view}`).classList.add('active');
+    // 숨겨진 동안에는 높이 계산이 안 되므로 메모 탭이 보이는 시점에 다시 맞춘다
+    if (tab.dataset.view === 'memo') Memos.autoGrow();
   });
 });
 
-document.getElementById('btn-minimize').addEventListener('click', () => window.api.minimize());
-document.getElementById('btn-close').addEventListener('click', () => window.api.close());
+document.getElementById('btn-minimize').addEventListener('click', () => {
+  Memos.flush(); // 최소화 상태에서 그대로 종료돼도 내용이 남도록
+  window.api.minimize();
+});
+document.getElementById('btn-close').addEventListener('click', () => {
+  Memos.flush();
+  window.api.close();
+});
 
 // 알람(빨간 깜빡임)은 아무 곳이나 클릭하거나 키를 누르면 해제
 window.addEventListener('click', () => Timer.stopAlarm(), true);
@@ -43,4 +52,6 @@ document.querySelectorAll('.resize-handle').forEach((handle) => {
   Timer.init();
   Todos.init();
   await Todos.load();
+  Memos.init();
+  await Memos.load();
 })();
