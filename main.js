@@ -79,6 +79,8 @@ function createWindow() {
     },
   });
   win.setAlwaysOnTop(true, 'screen-saver');
+  // 맥: 다른 데스크톱(Space)·전체화면 앱 위에서도 위젯이 보이게
+  if (process.platform === 'darwin') win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 }
 
@@ -100,7 +102,12 @@ ipcMain.on('open-external', (_e, url) => {
 });
 ipcMain.on('minimize', () => win?.minimize());
 ipcMain.on('close', () => win?.close());
-ipcMain.on('flash-frame', (_e, on) => win?.flashFrame(on));
+ipcMain.on('flash-frame', (_e, on) => {
+  // flashFrame은 맥에서 동작하지 않아 Dock 아이콘 바운스로 대체
+  if (process.platform === 'darwin') {
+    if (on) app.dock?.bounce('critical');
+  } else win?.flashFrame(on);
+});
 
 // 가로 크기 조절: 투명 frameless 창은 OS 가장자리 리사이즈가 불안정해서
 // 렌더러의 가장자리 핸들 드래그 → IPC → setBounds로 직접 처리한다
