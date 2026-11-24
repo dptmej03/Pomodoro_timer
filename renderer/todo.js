@@ -37,6 +37,7 @@ const Todos = {
 
   save() {
     window.api.saveData('todos', { todos: this.items });
+    if (typeof Calendar !== 'undefined' && Calendar.sel) Calendar.render(); // 달력 점·날짜별 목록 동기화
   },
 
   clearDropMarks() {
@@ -155,7 +156,34 @@ const Todos = {
       li.appendChild(box);
     }
 
-    li.append(text, del);
+    // 디데이: 📅 버튼(호버)이나 배지를 누르면 날짜 선택. 날짜가 있으면 D-n 배지 상시 표시.
+    const date = document.createElement('input');
+    date.type = 'date';
+    date.value = item.due || '';
+    date.addEventListener('change', () => {
+      item.due = date.value || undefined;
+      this.save();
+      this.render();
+    });
+    const cal = document.createElement('button');
+    cal.className = 'todo-cal';
+    cal.textContent = '📅';
+    cal.title = '디데이 설정';
+    cal.append(date);
+    cal.addEventListener('click', () => date.showPicker());
+
+    if (item.due) {
+      const [y, m, d] = item.due.split('-').map(Number);
+      const now = new Date();
+      const n = Math.round((new Date(y, m - 1, d) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+      const badge = document.createElement('span');
+      badge.className = 'dday' + (n < 0 ? ' over' : n === 0 ? ' today' : n <= 3 ? ' soon' : '');
+      badge.textContent = n === 0 ? 'D-Day' : n > 0 ? 'D-' + n : 'D+' + -n;
+      badge.title = item.due;
+      badge.addEventListener('click', () => date.showPicker());
+      li.append(badge); // 중요도 네모칸 바로 뒤, 텍스트 앞
+    }
+    li.append(text, cal, del);
 
     li.addEventListener('dragstart', (e) => {
       this.dragId = item.id;
@@ -198,6 +226,7 @@ const Todos = {
   makeGhost(tag) {
     const ghost = document.createElement('div');
     ghost.className = 'todo-ghost';
+    ghost.dataset.tag = tag ?? '';
 
     const circle = document.createElement('span');
     circle.className = 'circle ghost-circle';
@@ -209,8 +238,9 @@ const Todos = {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         this.add(input.value, tag);
-        input.value = '';
-        input.focus(); // 연속 입력
+        // add()가 목록을 통째로 다시 그려 이 input은 떨어져 나갔으니, 새로 생긴 같은 그룹의 추가줄로 포커스를 넘긴다
+        const next = document.querySelector(`.todo-ghost[data-tag="${tag ?? ''}"] input`);
+        if (next) next.focus();
       }
     });
 
@@ -310,11 +340,11 @@ const Todos = {
     input.addEventListener('blur', () => finish(true));
   },
 
-  add(text, tag) {
+  add(text, tag, due) {
     const trimmed = text.trim();
     if (!trimmed) return;
     const t = Settings.data.tagsEnabled ? tag ?? null : null;
-    this.items.push({ id: String(Date.now()), text: trimmed, done: false, tag: t, priority: 0 });
+    this.items.push({ id: String(Date.now()), text: trimmed, done: false, tag: t, priority: 0, ...(due && { due }) });
     this.save();
     this.render();
   },

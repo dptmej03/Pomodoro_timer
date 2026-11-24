@@ -11,6 +11,7 @@
     <header id="topbar">
       <span id="logo">🍅</span>
       <button class="tab tab-timer active" data-view="timer">타이머</button>
+      <button class="tab tab-cal" data-view="calendar">캘린더</button>
       <button class="tab tab-todo" data-view="todo">할 일</button>
       <button class="tab tab-memo" data-view="memo">메모</button>
       <button class="tab tab-settings" data-view="settings">설정</button>
@@ -37,6 +38,17 @@
       </div>
     </main>
 
+    <!-- 캘린더 뷰: 월 달력 + 선택한 날짜의 할일 (calendar.js가 그림) -->
+    <main id="view-calendar" class="view">
+      <div id="cal-head">
+        <button id="cal-prev" title="이전 달">‹</button>
+        <span id="cal-title" title="오늘로"></span>
+        <button id="cal-next" title="다음 달">›</button>
+      </div>
+      <div id="cal-grid"></div>
+      <div id="cal-list"></div>
+    </main>
+
     <!-- 할일 뷰 -->
     <main id="view-todo" class="view">
       <!-- 목록은 todo.js가 통째로 그린다:
@@ -48,8 +60,15 @@
     <!-- 메모 뷰: 칩 줄(메모 목록 + 추가)은 memo.js가 그리고, 아래는 공책 편집 영역 -->
     <main id="view-memo" class="view">
       <div id="memo-chips"></div>
+      <!-- 글자 서식: 굵게 / 기울임 / 밑줄 / 취소선 (mousedown을 막아 선택 영역 유지) -->
+      <div id="memo-fmt">
+        <button data-cmd="bold" title="굵게 (Ctrl+B)"><b>B</b></button>
+        <button data-cmd="italic" title="기울임 (Ctrl+I)"><i>I</i></button>
+        <button data-cmd="underline" title="밑줄 (Ctrl+U)"><u>U</u></button>
+        <button data-cmd="strikeThrough" title="취소선"><s>S</s></button>
+      </div>
       <div id="memo-paper">
-        <textarea id="memo-text" placeholder="메모를 입력하세요..." spellcheck="false"></textarea>
+        <div id="memo-text" contenteditable="true" data-placeholder="메모를 입력하세요..." spellcheck="false"></div>
       </div>
     </main>
 
@@ -65,6 +84,23 @@
           <button class="swatch" data-swatch-theme="purple" title="퍼플"></button>
           <button class="swatch" data-swatch-theme="pink" title="핑크"></button>
           <button class="swatch" data-swatch-theme="dark" title="다크"></button>
+          <button class="swatch" data-swatch-theme="green" title="그린"></button>
+          <button class="swatch" data-swatch-theme="yellow" title="옐로"></button>
+          <button class="swatch" data-swatch-theme="orange" title="오렌지"></button>
+          <button class="swatch" data-swatch-theme="navy" title="네이비"></button>
+          <button class="swatch" data-swatch-theme="custom" title="직접 만들기"></button>
+        </div>
+        <div id="custom-panel" hidden>
+          <label>색상 <input type="range" id="c-h" min="0" max="360"></label>
+          <label>채도 <input type="range" id="c-s" min="0" max="100"></label>
+          <label>명도 <input type="range" id="c-l" min="0" max="100"></label>
+          <div id="c-rgb">
+            <span>RGB</span>
+            <input type="number" id="c-r" min="0" max="255">
+            <input type="number" id="c-g" min="0" max="255">
+            <input type="number" id="c-b" min="0" max="255">
+          </div>
+          <button id="c-save" type="button"></button>
         </div>
       </section>
       <section class="setting">
@@ -129,6 +165,7 @@
   <script src="settings.js"></script>
   <script src="timer.js"></script>
   <script src="todo.js"></script>
+  <script src="calendar.js"></script>
   <script src="memo.js"></script>
   <script src="app.js"></script>
 </body>

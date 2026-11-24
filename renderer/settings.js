@@ -30,8 +30,83 @@ const Settings = {
     this.data.tagsEnabled = this.data.tagsEnabled === true;
     this.data.priorityEnabled = this.data.priorityEnabled === true;
     this.data.prioritySort = this.data.prioritySort === true;
+    const c = this.data.customColor || {};
+    const ok = (v, max) => Number.isFinite(v) && v >= 0 && v <= max;
+    this.data.customColor = ok(c.h, 360) && ok(c.s, 100) && ok(c.l, 100) ? c : { h: 210, s: 40, l: 90 };
+    this.data.savedColors = (Array.isArray(this.data.savedColors) ? this.data.savedColors : [])
+      .filter((x) => x && ok(x.h, 360) && ok(x.s, 100) && ok(x.l, 100));
     this.apply();
     this.syncUI();
+  },
+
+  sameColor(a, b) {
+    return a.h === b.h && a.s === b.s && a.l === b.l;
+  },
+
+  // 저장해 둔 색을 테마 줄 끝에 동그라미로 그린다
+  renderSaved() {
+    const wrap = document.getElementById('theme-swatches');
+    wrap.querySelectorAll('.saved').forEach((el) => el.remove());
+    for (const c of this.data.savedColors) {
+      const b = document.createElement('button');
+      b.className = 'swatch saved' + (this.data.theme === 'custom' && this.sameColor(c, this.data.customColor) ? ' active' : '');
+      b.style.background = `hsl(${c.h}, ${c.s}%, ${c.l}%)`;
+      b.title = '저장한 색';
+      b.addEventListener('click', () => {
+        this.data.theme = 'custom';
+        this.data.customColor = { ...c };
+        this.apply();
+        this.syncUI();
+        this.save();
+      });
+      wrap.appendChild(b);
+    }
+    const saved = this.data.savedColors.some((c) => this.sameColor(c, this.data.customColor));
+    document.getElementById('c-save').textContent = saved ? '−' : '+';
+    document.getElementById('c-save').title = saved ? '저장한 색 삭제' : '이 색 저장';
+  },
+
+  // 직접 만든 색(HSL) → 테마 변수들. 밝은 바탕이면 어두운 글자, 어두운 바탕이면 밝은 글자.
+  applyCustom() {
+    const { h, s, l } = this.data.customColor;
+    const light = l > 55;
+    const hsl = (hh, ss, ll) => `hsl(${hh}, ${ss}%, ${Math.max(0, Math.min(100, ll))}%)`;
+    const dir = l > 50 ? -1 : 1; // 탭·줄은 바탕에서 조금씩 멀어지게
+    const v = {
+      '--bg': hsl(h, s, l),
+      '--paper-line': hsl(h, s, l + dir * 9),
+      '--text': light ? hsl(h, Math.min(s, 30), 20) : hsl(h, Math.min(s, 30), 92),
+      '--text-faded': light ? hsl(h, s * 0.5, 60) : hsl(h, s * 0.4, 50),
+      '--accent': light ? '#E5484D' : '#FF6B6B',
+      '--margin-line': hsl(h, s, light ? 68 : 42),
+      '--tab-text': light ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.75)',
+    };
+    ['timer', 'todo', 'memo', 'settings'].forEach((k, i) => {
+      v['--tab-' + k] = hsl(h, s, l + dir * (6 + i * 5));
+    });
+    for (const [k, val] of Object.entries(v)) document.body.style.setProperty(k, val);
+  },
+
+  hslToRgb({ h, s, l }) {
+    s /= 100; l /= 100;
+    const f = (n) => {
+      const k = (n + h / 30) % 12;
+      return Math.round(255 * (l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+    };
+    return [f(0), f(8), f(4)];
+  },
+
+  rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    const l = (max + min) / 2;
+    let h = 0;
+    if (d) {
+      h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h = (h * 60 + 360) % 360;
+    }
+    const s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+    return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
   },
 
   // 태그 배열을 항상 [{id, name}] 형태로 정규화.
@@ -80,10 +155,21 @@ const Settings = {
 
   apply() {
     document.body.dataset.theme = this.data.theme;
+    if (this.data.theme === 'custom') this.applyCustom();
+    else document.body.removeAttribute('style'); // 직접 만든 색 변수 제거
   },
 
   syncUI() {
-    document.querySelectorAll('.swatch').forEach((s) => {
+    this.renderSaved();
+    const panel = document.getElementById('custom-panel');
+    panel.hidden = this.data.theme !== 'custom';
+    const { h, s, l } = this.data.customColor;
+    const set = (id, val) => { const el = document.getElementById(id); if (document.activeElement !== el) el.value = val; };
+    set('c-h', h); set('c-s', s); set('c-l', l);
+    this.hslToRgb(this.data.customColor).forEach((val, i) => set('c-' + 'rgb'[i], val));
+    document.getElementById('c-s').style.background = `linear-gradient(to right, hsl(${h},0%,${l}%), hsl(${h},100%,${l}%))`;
+    document.getElementById('c-l').style.background = `linear-gradient(to right, #000, hsl(${h},${s}%,50%), #fff)`;
+    document.querySelectorAll('.swatch:not(.saved)').forEach((s) => {
       s.classList.toggle('active', s.dataset.swatchTheme === this.data.theme);
     });
     const radio = document.querySelector(
@@ -228,6 +314,36 @@ const Settings = {
   },
 
   init() {
+    const custom = (hsl) => {
+      this.data.customColor = hsl;
+      this.apply();
+      this.syncUI();
+      this.save();
+    };
+    document.getElementById('c-save').addEventListener('click', () => {
+      const cur = this.data.customColor;
+      const has = this.data.savedColors.some((c) => this.sameColor(c, cur));
+      this.data.savedColors = has
+        ? this.data.savedColors.filter((c) => !this.sameColor(c, cur))
+        : [...this.data.savedColors, { ...cur }];
+      this.syncUI();
+      this.save();
+    });
+    ['h', 's', 'l'].forEach((k) => {
+      document.getElementById('c-' + k).addEventListener('input', () => {
+        const get = (x) => Number(document.getElementById('c-' + x).value);
+        custom({ h: get('h'), s: get('s'), l: get('l') });
+      });
+    });
+    // RGB는 0~255 정수만 받고, 잘못된 값은 clamp
+    ['r', 'g', 'b'].forEach((k) => {
+      document.getElementById('c-' + k).addEventListener('change', () => {
+        const get = (x) => Math.max(0, Math.min(255, Math.round(Number(document.getElementById('c-' + x).value) || 0)));
+        const hsl = this.rgbToHsl(get('r'), get('g'), get('b'));
+        document.activeElement.blur(); // 먼저 포커스를 풀어야 정규화된 값이 칸에 다시 채워진다
+        custom(hsl);
+      });
+    });
     document.querySelectorAll('.swatch').forEach((s) => {
       s.addEventListener('click', () => {
         this.data.theme = s.dataset.swatchTheme;

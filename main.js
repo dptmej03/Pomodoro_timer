@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -94,6 +94,10 @@ ipcMain.on('save-data-sync', (e, kind, data) => {
   e.returnValue = saveJson(kind, data);
 });
 
+// 메모 링크용: http(s)만 허용 (file:, 실행 파일 경로 등은 막는다)
+ipcMain.on('open-external', (_e, url) => {
+  if (/^https?:\/\//i.test(url)) shell.openExternal(url);
+});
 ipcMain.on('minimize', () => win?.minimize());
 ipcMain.on('close', () => win?.close());
 ipcMain.on('flash-frame', (_e, on) => win?.flashFrame(on));

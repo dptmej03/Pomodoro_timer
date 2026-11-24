@@ -8,6 +8,7 @@ document.querySelectorAll('.tab').forEach((tab) => {
     document.getElementById(`view-${tab.dataset.view}`).classList.add('active');
     // 숨겨진 동안에는 높이 계산이 안 되므로 메모 탭이 보이는 시점에 다시 맞춘다
     if (tab.dataset.view === 'memo') Memos.autoGrow();
+    if (tab.dataset.view === 'calendar') Calendar.render(); // 설정에서 바꾼 태그 목록 반영
   });
 });
 
@@ -52,6 +53,7 @@ document.querySelectorAll('.resize-handle').forEach((handle) => {
   Timer.init();
   Todos.init();
   await Todos.load();
+  Calendar.init();
   Memos.init();
   await Memos.load();
 })();
