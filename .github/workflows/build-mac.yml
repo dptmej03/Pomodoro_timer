@@ -3,6 +3,7 @@ name: Build macOS
 on:
   workflow_dispatch:   # Actions 탭에서 수동 실행
   push:
+    branches: [mac-support]   # 맥 지원 브랜치 검증용
     tags: ['v*']
 
 jobs:
